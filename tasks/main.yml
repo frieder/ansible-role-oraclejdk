@@ -1,0 +1,27 @@
+---
+
+- name: Fail this role in case the Oracle JDK license has not been agreed on
+  when: oraclejdk_license_accept != true
+  fail:
+    msg: "Please accept the Oracle JDK license first by setting 'oraclejdk_license_accept: true'"
+  tags:
+    - oraclejdk
+
+- name: Include os family/distribution specific settings
+  include_vars: '{{ item }}'
+  with_first_found:
+    - '{{ role_path }}/defaults/{{ ansible_os_family | lower }}-{{ ansible_distribution | lower | regex_replace(" ", "_") }}.yml'
+    - '{{ role_path }}/defaults/{{ ansible_os_family | lower }}.yml'
+    - '{{ role_path }}/defaults/generic.yml'
+  tags:
+    - oraclejdk
+
+- include: 00_setfacts.yml
+- include: 02_prerequisites.yml
+- include: 04_fetchjdk.yml
+- include: 06_installjdk.yml
+- include: 08_fetchjce.yml
+- include: 10_installjce.yml
+- include: 12_cleanup.yml
+
+

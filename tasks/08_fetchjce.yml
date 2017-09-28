@@ -1,0 +1,25 @@
+---
+
+- name: Fetch Oracle Java Cryptography Extension (JCE) artefacts
+  when: oraclejdk_jce_install
+  delegate_to: 127.0.0.1
+  run_once: true
+  block:
+
+    - name: 'Create temp directory at {{ oraclejdk_dl_dir }} (127.0.0.1)'
+      file:
+        path:   '{{ oraclejdk_dl_dir }}'
+        state:  directory
+
+    - name: 'Download Oracle JCE to temp directory (127.0.0.1)'
+      get_url:
+        url:      '{{ oraclejdk_jce_url }}'
+        headers:  '{{ oraclejdk_cookie }}'
+        checksum: '{{ oraclejdk_jce_checksum }}'
+        dest:     '{{ oraclejdk_dl_dir }}/{{ oraclejdk_jce_name }}.zip'
+
+  tags:
+    - oraclejdk
+    - oraclejdk_jce
+    - oraclejdk_jce_download
+

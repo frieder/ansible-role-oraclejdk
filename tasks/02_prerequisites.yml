@@ -1,0 +1,21 @@
+---
+
+- name: Install packages required for the execution of this role
+  when: oraclejdk_install_prereq
+  block:
+
+    - name: Install the 'tar' package
+      package:
+        name:   tar
+        state:  present
+
+    - name: Install the 'unzip' package
+      when: oraclejdk_jce_install
+      package:
+        name:   unzip
+        state:  present
+
+  tags:
+    - oraclejdk
+    - oraclejdk_prereq
+

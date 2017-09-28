@@ -1,0 +1,58 @@
+---
+
+- name: Check if JCE is already installed
+  when: oraclejdk_jce_install
+  shell: '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}/bin/jrunscript -e "print (javax.crypto.Cipher.getMaxAllowedKeyLength(\"RC5\") >= 256);"'
+  changed_when: false
+  ignore_errors: true
+  register: jce_installed
+  tags:
+    - oraclejdk
+    - oraclejdk_jce
+    - oraclejdk_jce_install
+
+- name: Install Oracle Java Cryptography Extension (JCE)
+  when: oraclejdk_jce_install and jce_installed.stdout == 'false'
+  block:
+
+    - name: 'Create temp directory at {{ oraclejdk_dl_dir }}'
+      file:
+        path:   '{{ oraclejdk_dl_dir }}'
+        state:  directory
+
+    - name: 'Copy Oracle JCE archive to temp directory at {{ oraclejdk_dl_dir }}'
+      copy:
+        src:    '{{ oraclejdk_dl_dir }}/{{ oraclejdk_jce_name }}.zip'
+        dest:   '{{ oraclejdk_dl_dir }}/{{ oraclejdk_jce_name }}.zip'
+
+    - name: Unzip Oracle JCE archive
+      unarchive:
+        src:        '{{ oraclejdk_dl_dir }}/{{ oraclejdk_jce_name }}.zip'
+        dest:       '{{ oraclejdk_dl_dir }}/'
+        remote_src: true
+
+    - name: Copy JCE policy files to JDK
+      copy:
+        src:        '{{ oraclejdk_dl_dir }}/{{ oraclejdk_jce_name }}/{{ item }}'
+        dest:       '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}/jre/lib/security/{{ item }}'
+        remote_src: true
+      with_items:
+        - US_export_policy.jar
+        - local_policy.jar
+
+    - name: Check if JCE has successfully been installed
+      shell: '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}/bin/jrunscript -e "print (javax.crypto.Cipher.getMaxAllowedKeyLength(\"RC5\") >= 256);"'
+      changed_when: false
+      ignore_errors: true
+      register: jce_check
+
+    - name: Fail if JCE installation was not successful
+      when: jce_check.stdout == 'false'
+      fail:
+        msg:  JCE has not successfully been installed.
+
+  tags:
+    - oraclejdk
+    - oraclejdk_jce
+    - oraclejdk_jce_install
+

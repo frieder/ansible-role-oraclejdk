@@ -1,0 +1,80 @@
+---
+
+- name: Check if Oracle JDK is already installed
+  stat:
+    path:   '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}'
+  register: java_home_check
+
+- name: Install Oracle JDK artefacts
+  block:
+
+    - name: Copy and extract JDK archive
+      when: java_home_check.stat.exists == false or oraclejdk_force_install
+      block:
+
+        - name: 'Create temp directory at {{ oraclejdk_dl_dir }}'
+          file:
+            path:   '{{ oraclejdk_dl_dir }}'
+            state:  directory
+
+        - name: 'Copy {{ oraclejdk_name }}.tar.gz to {{ oraclejdk_dl_dir }}'
+          copy:
+            src:    '{{ oraclejdk_dl_dir }}/{{ oraclejdk_name }}.tar.gz'
+            dest:   '{{ oraclejdk_dl_dir }}/{{ oraclejdk_name }}.tar.gz'
+
+        - name: 'Create JDK base root directory at {{ oraclejdk_base_root }}'
+          file:
+            path:   '{{ oraclejdk_base_root }}'
+            state:  directory
+
+        - name: 'Extract JDK archive to {{ oraclejdk_base_root }}/{{ oraclejdk_name }}'
+          unarchive:
+            src:        '{{ oraclejdk_dl_dir }}/{{ oraclejdk_name }}.tar.gz'
+            dest:       '{{ oraclejdk_base_root }}'
+            remote_src: true
+
+    - name: Set JAVA_HOME
+      when: oraclejdk_sethome
+      block:
+
+        - name: 'Create {{ oraclejdk_profile_file }} if it does not exist'
+          copy:
+            content:  ''
+            dest:     '{{ oraclejdk_profile_file }}'
+            force:    false
+
+        - name: 'Set JAVA_HOME in {{ oraclejdk_profile_file  }} to {{ oraclejdk_base_root }}/{{ oraclejdk_name }}'
+          lineinfile:
+            path:     '{{ oraclejdk_profile_file }}'
+            regexp:   '^export JAVA_HOME=.*'
+            line:     'export JAVA_HOME={{ oraclejdk_base_root }}/{{ oraclejdk_name }}'
+
+        - name: 'Add $JAVA_HOME/bin in {{ oraclejdk_profile_file }} to $PATH'
+          lineinfile:
+            path:     '{{ oraclejdk_profile_file }}'
+            regexp:   '^export PATH=.*'
+            line:     'export PATH=${PATH}:${JAVA_HOME}/bin'
+   
+    - name: Update alternatives
+      when: oraclejdk_alternative_upd
+      alternatives:
+        name:     '{{ item }}'
+        link:     '/usr/bin/{{ item }}'
+        path:     '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}/bin/{{ item }}'
+        priority: '{{ oraclejdk_alternative_prio }}'
+      with_items:
+        - jar
+        - java
+        - javac
+        - jcmd
+        - jconsole
+        - jmap
+        - jps
+        - jstack
+        - jstat
+        - jstatd
+
+  tags:    
+    - oraclejdk
+    - oraclejdk_install
+

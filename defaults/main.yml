@@ -1,0 +1,30 @@
+---
+#
+# Do not edit this value in here but use the playbook vars or the vars/ directory instead.
+#
+oraclejdk_license_accept:   false   # must be set to true otherwise the play will fail
+oraclejdk_cleanup:          true    # will remove temp files <--> plabooks will return changed = true if true
+oraclejdk_install_prereq:   false   # will install all packages required to run this role
+oraclejdk_force_install:    false   # will install the JDK even when its already installed (dir exist check)
+
+oraclejdk_dl_dir:           /tmp/oraclejdk            # temp directory in which the archives are stored
+oraclejdk_base_root:        /opt/oraclejdk            # the base directory in which the JDK dirs will be extracted
+oraclejdk_profile_file:     /etc/profile.d/java.sh    # the location of the file to set JAVA_HOME
+
+oraclejdk_cookie:           'Cookie:oraclelicense=accept-securebackup-cookie'
+
+oraclejdk_name:             jdk1.8.0_144    # use the name of the folder inside the tar.gz file
+oraclejdk_url:              'http://download.oracle.com/otn-pub/java/jdk/8u144-b01/090f390dda5b47b9b721c7dfaa008135/jdk-8u144-linux-x64.tar.gz'
+oraclejdk_checksum:         'sha256:e8a341ce566f32c3d06f6d0f0eeea9a0f434f538d22af949ae58bc86f2eeaae4'
+oraclejdk_sethome:          true            # true will update $JAVA_HOME
+oraclejdk_alternative_upd:  true            # true will run update-alternatives
+oraclejdk_alternative_prio: 8144            # the priority for update-alternatives
+
+# Starting with JDK9 this is no longer required, see http://mail.openjdk.java.net/pipermail/security-dev/2016-October/014943.html
+# Only use this for JDK 8 and lower. 
+oraclejdk_jce_install:      false
+oraclejdk_jce_name:         'UnlimitedJCEPolicyJDK8'
+oraclejdk_jce_url:          'http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip'
+oraclejdk_jce_checksum:     'sha256:f3020a3922efd6626c2fff45695d527f34a8020e938a49292561f18ad1320b59.'
+
+
