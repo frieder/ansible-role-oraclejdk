@@ -87,7 +87,7 @@ Following are some examples how to use this role in an Ansible playbook.
       oraclejdk_cleanup:        false
 ```
 
-**JDK9 & No Cleanup**
+**JDK9**
 ```yaml
 - hosts: servers
   roles:
