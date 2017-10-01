@@ -2,8 +2,12 @@
 
 - name: Check if Oracle JDK is already installed
   stat:
-    path:   '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}'
+    path:   '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}'
   register: java_home_check
+  tags:
+    - oraclejdk
+    - oraclejdk_install
+
 
 - name: Install Oracle JDK artefacts
   block:

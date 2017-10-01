@@ -14,7 +14,7 @@ An Ansible role to install Oracle JDK.
 
 ## Summary
 
-This Ansible role installs Oracle JDK and Java Cryptography Extension (optional) on the target host. OpenJDK is not supported. It has been tested with Oracle JDK 8u144 and 9u181 on the following Linux distributions.
+This Ansible role installs Oracle JDK and Java Cryptography Extension (optional) on the target host. OpenJDK is not supported. It has been tested with Oracle JDK 8u144 and JDK 9u181 on the following Linux distributions.
 
 * Ubuntu 16.04
 * Debian 9
@@ -31,7 +31,7 @@ Ansible >= 2.x
 In addition this role requires the following packages to be installed on the target host.
 
 * `tar` - Always required to extract the JDK tar.gz archive
-* `unzip` - Only required if JCE should be installed (JDK8 or lower only)
+* `unzip` - Only required if JCE should be installed (JDK8 only)
 
 ## Installation
 
@@ -41,7 +41,7 @@ To use this role it must first get downloaded from [Ansible Galaxy](https://gala
 
 ## Role Variables
 
-All role variables are defined in `defaults/main.yml`. One can overwrite these values in the playbook (see examples at the bottom). By default the role will try to install Oracle JDK 8 Update 144 (the latest version as of Sep 24).
+All role variables are defined in `defaults/main.yml`. One can overwrite these values in the playbook (see examples at the bottom). By default the role will try to install Oracle JDK 8 Update 144.
 
 | Variable | Default | Description |
 |--:|:-:|:--|
@@ -53,16 +53,16 @@ All role variables are defined in `defaults/main.yml`. One can overwrite these v
 | oraclejdk_base_root | /opt/oraclejdk | The folder in which the JDK archives get extracted. All JDK folders will be in here. |
 | oraclejdk_profile_file | /etc/profile.d/java.sh | The file in which the role will set the JAVA_HOME and PATH export. |
 | oraclejdk_cookie | Cookie:oraclelicense=accept-securebackup-cookie | The cookie required for automated downloads from oracle.com. License check is done with a different variable. |
-| oraclejdk_name | jdk1.8.0_144 | The name of the folder within the JDK archive. The role also uses it as the JDK folder name inside the {{ oraclejdk_base_root }} base directory. |
+| oraclejdk_name | jdk1.8.0_144 | The name of the folder within the JDK archive. The role also uses it as the JDK folder name inside the {{ oraclejdk_base_root }} base directoryfor the JAVA_HOME path. |
 | oraclejdk_url | http://download.oracle.com/... | The URL of th JDK archive at oracle.com. |
 | oraclejdk_checksum | sha256:... | The SHA256 checksum of the JDK archive. This is used to verify that the downloaded file is valid. To disable this check just provide an empty checksum value (`oraclejdk_checksum: ''`). |
 | oraclejdk_sethome | true | When set to true it will update the global variable JAVA_HOME to point to the installation directory of the JDK and add the binaries to the PATH variable. Also have a look at the `oraclejdk_profile_file` variable. |
 | oraclejdk_alternative_upd | true | When set to true it will set the alternative for java (`update-alternatives --config java`) to the current JDK. In addition it will also update the alternatives for `jar, javac, jcmd, jconsole, jmap, jps, jstack, jstat, jstatd`.|
 | oraclejdk_alternative_prio | 8144 | The priority used for the `update-alternatives` command. The JDK with the highest priority wins. |
-| oraclejdk_jce_install | true | When set to true it will install and add the latest Java Cryptography Extension (JCE) to the JDK. Please note that this is only required for JDK 8 or earlier versions. JDK9 already comes with the latest policy files which can be activated by [setting a property](http://mail.openjdk.java.net/pipermail/security-dev/2016-October/014943.html). |
-| oraclejdk_jce_name | UnlimitedJCEPolicyJDK8 | The name of the folder inside the JCE archive. |
-| oraclejdk_jce_url | http://download.oracle.com/... | The URL of the JCE archive at oracle.com. |
-| oraclejdk_jce_checksum | sha256:... | The SHA256 checksum of the JCE archive. To disable this check just provide an empty checksum value (`oraclejdk_jce_checksum: ''`). |
+| oraclejdk_jce_install | true | When set to true it will install and add the latest Java Cryptography Extension (JCE) to the JDK. Please note that with JDK9 the unlimited key strength is enabled by default and no additional action are required. For more information please refer to the [security-dev mailinglist](http://mail.openjdk.java.net/pipermail/security-dev/2016-October/014943.html). |
+| oraclejdk_jce_name | UnlimitedJCEPolicyJDK8 | **JDK8 only**. The name of the folder inside the JCE archive. |
+| oraclejdk_jce_url | http://download.oracle.com/... | **JDK8 only**. The URL of the JCE archive at oracle.com. |
+| oraclejdk_jce_checksum | sha256:... | **JDK8 only**. The SHA256 checksum of the JCE archive. To disable this check just provide an empty checksum value (`oraclejdk_jce_checksum: ''`). |
 
 ## Example Playbooks
 
