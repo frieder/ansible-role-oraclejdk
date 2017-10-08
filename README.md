@@ -39,6 +39,17 @@ To use this role it must first get downloaded from [Ansible Galaxy](https://gala
 
 `ansible-galaxy install frieder.oraclejdk`
 
+The command above will always pull the latest version off of Galaxy. Another possibility is to pull the role from Github and define a specific release version to download. This allows for better control over which version of this role to be used. Create a `requirements.yml` and put the following content in it.
+
+```yaml
+---
+- name: frieder.oraclejdk
+  src: https://github.com/frieder/ansible-role-oraclejdk
+  version: 1.0.1
+```
+
+Next you can execute `ansible-galaxy install -r ./requirements.yml --ignore-errors` and it will download all dependencies defined in this list. `--ignore-errors` will make sure that the whole list is processed even when some dependencies are already downloaded. A nice overview of possible entries for `requirements.yml` can be found [here](https://zaiste.net/posts/automatically_install_ansible_galaxy_roles_with_requirements_yml/).
+
 ## Role Variables
 
 All role variables are defined in `defaults/main.yml`. One can overwrite these values in the playbook (see examples at the bottom). By default the role will try to install Oracle JDK 8 Update 144.
@@ -68,7 +79,7 @@ All role variables are defined in `defaults/main.yml`. One can overwrite these v
 
 Following are some examples how to use this role in an Ansible playbook.
 
-**JDK8 with minimal configuration**
+**JDK8 w/ minimal configuration**
 ```yaml
 - hosts: servers
   roles:
@@ -98,3 +109,14 @@ Following are some examples how to use this role in an Ansible playbook.
       oraclejdk_checksum:         'sha256:1c6d783a54fcc0673ed1f8c5e8650b1d8977ca3e856a03fba0090198e0f16f6d'
       oraclejdk_alternative_prio: 9181
 ```
+
+**JDK9 w/o checksum check**
+```yaml
+- hosts: servers
+  roles:
+    - role: frieder.oraclejdk
+      oraclejdk_license_accept:   true
+      oraclejdk_name:             jdk-9
+      oraclejdk_url:              'http://download.oracle.com/otn-pub/java/jdk/9+181/jdk-9_linux-x64_bin.tar.gz'
+      oraclejdk_checksum:         ''
+      oraclejdk_alternative_prio: 9181
