@@ -5,17 +5,10 @@
 
   - name: Check if JCE is already installed
     when: oraclejdk_jce_install
-    shell: '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}/bin/jrunscript -e "print (javax.crypto.Cipher.getMaxAllowedKeyLength(\"SHA256\") > 128);"'
+    shell: '{{ oraclejdk_home }}/bin/jrunscript -e "print (javax.crypto.Cipher.getMaxAllowedKeyLength(\"SHA256\") > 128);"'
     changed_when: false
     ignore_errors: true
     register: jce_installed
-
-  - debug:
-      msg: 'JCE Installed = {{ jce_installed.stdout }}'
-
-  - debug:
-      msg: 'JDK9 exists = {{ jdk9_check.stat.exists }}'
-
 
   # JDK8
   - name: Install Oracle Java Cryptography Extension (JDK8 only)
@@ -41,14 +34,14 @@
       - name: Copy JCE policy files to JDK (JDK8 only)
         copy:
           src:        '{{ oraclejdk_dl_dir }}/{{ oraclejdk_jce_name }}/{{ item }}'
-          dest:       '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}/jre/lib/security/{{ item }}'
+          dest:       '{{ oraclejdk_home }}/jre/lib/security/{{ item }}'
           remote_src: true
         with_items:
           - US_export_policy.jar
           - local_policy.jar
 
       - name: Check if JCE has successfully been installed (JDK8 only)
-        shell: '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}/bin/jrunscript -e "print (javax.crypto.Cipher.getMaxAllowedKeyLength(\"SHA256\") > 128);"'
+        shell: '{{ oraclejdk_home }}/bin/jrunscript -e "print (javax.crypto.Cipher.getMaxAllowedKeyLength(\"SHA256\") > 128);"'
         changed_when: false
         ignore_errors: true
         register: jce_check
@@ -59,18 +52,18 @@
           msg:  JCE has not successfully been installed.
 
 
-  # JDK9
+  # JDK9 (already enabled by default, only required to re-enable it)
   - name: Enable unlimited Java Cryptography Extension key strength (JDK9 only)
     when: oraclejdk_jce_install and jce_installed.stdout == 'false' and jdk9_check.stat.exists == true
     lineinfile:
-      path:   '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}/conf/security/java.security'
+      path:   '{{ oraclejdk_home }}/conf/security/java.security'
       regexp: '^crypto.policy=limited$'
       line:   'crypto.policy=unlimited'
 
 
   # final check if JCE is installed/enabled (both JDK8 & JDK9)
   - name: Check if JCE has successfully been installed
-    shell: '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}/bin/jrunscript -e "print (javax.crypto.Cipher.getMaxAllowedKeyLength(\"SHA256\") > 128);"'
+    shell: '{{ oraclejdk_home }}/bin/jrunscript -e "print (javax.crypto.Cipher.getMaxAllowedKeyLength(\"SHA256\") > 128);"'
     changed_when: false
     ignore_errors: true
     register: jce_check

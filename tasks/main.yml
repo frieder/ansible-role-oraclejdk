@@ -7,11 +7,10 @@
   tags:
     - oraclejdk
 
-- include: 02_prerequisites.yml
-- include: 04_fetchjdk.yml
-- include: 06_installjdk.yml
-- include: 08_fetchjce.yml
-- include: 10_installjce.yml
-- include: 12_cleanup.yml
+- include: 02_fetchjdk.yml
+- include: 04_installjdk.yml
+- include: 06_fetchjce.yml
+- include: 08_installjce.yml
+- include: 10_cleanup.yml
 
 

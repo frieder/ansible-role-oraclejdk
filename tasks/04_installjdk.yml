@@ -1,8 +1,8 @@
 ---
 
-- name: Check if Oracle JDK is already installed
+- name: 'Check if Oracle JDK is already installed at {{ oraclejdk_home }}'
   stat:
-    path:   '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}'
+    path:   '{{ oraclejdk_home }}'
   register: java_home_check
   tags:
     - oraclejdk
@@ -21,21 +21,24 @@
             path:   '{{ oraclejdk_dl_dir }}'
             state:  directory
 
-        - name: 'Copy {{ oraclejdk_name }}.tar.gz to {{ oraclejdk_dl_dir }}'
+        - name: 'Copy {{ oraclejdk_dl_artefact_path }} from source to target host'
           copy:
-            src:    '{{ oraclejdk_dl_dir }}/{{ oraclejdk_name }}.tar.gz'
-            dest:   '{{ oraclejdk_dl_dir }}/{{ oraclejdk_name }}.tar.gz'
+            src:    '{{ oraclejdk_dl_artefact_path }}'
+            dest:   '{{ oraclejdk_dl_artefact_path }}'
 
-        - name: 'Create JDK base root directory at {{ oraclejdk_base_root }}'
+        - name: 'Create JDK base root directory at {{ oraclejdk_home }}'
           file:
-            path:   '{{ oraclejdk_base_root }}'
+            path:   '{{ oraclejdk_home }}'
             state:  directory
 
-        - name: 'Extract JDK archive to {{ oraclejdk_base_root }}/{{ oraclejdk_name }}'
+        - name: 'Extract JDK archive to {{ oraclejdk_home }}/{{ oraclejdk_dl_artefact_name }}'
           unarchive:
-            src:        '{{ oraclejdk_dl_dir }}/{{ oraclejdk_name }}.tar.gz'
-            dest:       '{{ oraclejdk_base_root }}'
+            src:        '{{ oraclejdk_dl_artefact_path }}'
+            dest:       '{{ oraclejdk_home }}'
             remote_src: true
+
+        - name: Move JDK content & cleanup of obsolete folder
+          shell:  'mv {{ oraclejdk_home }}/{{ oraclejdk_dl_artefact_name }}/* {{ oraclejdk_home }} && rmdir {{ oraclejdk_home }}/{{ oraclejdk_dl_artefact_name }}'
 
     - name: Set JAVA_HOME
       when: oraclejdk_sethome
@@ -47,11 +50,11 @@
             dest:     '{{ oraclejdk_profile_file }}'
             force:    false
 
-        - name: 'Set JAVA_HOME in {{ oraclejdk_profile_file  }} to {{ oraclejdk_base_root }}/{{ oraclejdk_name }}'
+        - name: 'Set JAVA_HOME in {{ oraclejdk_profile_file  }} to {{ oraclejdk_home}}'
           lineinfile:
             path:     '{{ oraclejdk_profile_file }}'
             regexp:   '^export JAVA_HOME=.*'
-            line:     'export JAVA_HOME={{ oraclejdk_base_root }}/{{ oraclejdk_name }}'
+            line:     'export JAVA_HOME={{ oraclejdk_home }}'
 
         - name: 'Add $JAVA_HOME/bin in {{ oraclejdk_profile_file }} to $PATH'
           lineinfile:
@@ -64,7 +67,7 @@
       alternatives:
         name:     '{{ item }}'
         link:     '/usr/bin/{{ item }}'
-        path:     '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}/bin/{{ item }}'
+        path:     '{{ oraclejdk_home }}/bin/{{ item }}'
         priority: '{{ oraclejdk_alternative_prio }}'
       with_items:
         - jar

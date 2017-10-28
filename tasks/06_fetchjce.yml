@@ -2,7 +2,7 @@
 
 - name: Determine if JDK is v9+ based on folder layout
   stat:
-    path:   '{{ oraclejdk_base_root }}/{{ oraclejdk_name }}/conf/security/java.security'
+    path:   '{{ oraclejdk_home }}/conf/security/java.security'
   register: jdk9_check
 
 
