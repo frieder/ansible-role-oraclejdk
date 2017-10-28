@@ -14,7 +14,7 @@ An Ansible role to install Oracle JDK.
 
 ## Summary
 
-This Ansible role installs Oracle JDK and Java Cryptography Extension (optional) on the target host. OpenJDK is not supported. It has been tested with Oracle JDK 8u144 and JDK 9u181 on the following Linux distributions.
+This Ansible role installs Oracle JDK and Java Cryptography Extension (optional) on the target host. OpenJDK is not supported. It has been tested with Oracle JDK 8u144/8u151 and JDK 9u181/9.0.1 on the following Linux distributions.
 
 * Ubuntu 16.04
 * Debian 9
@@ -26,12 +26,12 @@ This Ansible role installs Oracle JDK and Java Cryptography Extension (optional)
 
 ## Dependencies
 
-Ansible >= 2.x
+Ansible >= 2.x (tested with 2.3.2.0 and 2.4.0.0)
 
 In addition this role requires the following packages to be installed on the target host.
 
 * `tar` - Always required to extract the JDK tar.gz archive
-* `unzip` - Only required if JCE should be installed (JDK8 only)
+* `unzip` - Only required if JCE for JDK8 should be installed
 
 ## Installation
 
@@ -45,33 +45,32 @@ The command above will always pull the latest version off of Galaxy. Another pos
 ---
 - name: frieder.oraclejdk
   src: https://github.com/frieder/ansible-role-oraclejdk
-  version: 1.0.1
+  version: 2.0.0
 ```
 
 Next you can execute `ansible-galaxy install -r ./requirements.yml --ignore-errors` and it will download all dependencies defined in this list. `--ignore-errors` will make sure that the whole list is processed even when some dependencies are already downloaded. A nice overview of possible entries for `requirements.yml` can be found [here](https://zaiste.net/posts/automatically_install_ansible_galaxy_roles_with_requirements_yml/).
 
 ## Role Variables
 
-All role variables are defined in `defaults/main.yml`. One can overwrite these values in the playbook (see examples at the bottom). By default the role will try to install Oracle JDK 8 Update 144.
+All role variables are defined in `defaults/main.yml`. One can overwrite these values in the playbook (see examples at the bottom).
 
 | Variable | Default | Description |
 |--:|:-:|:--|
 | oraclejdk_license_accept | false | Must be set to true or the play will fail. |
 | oraclejdk_cleanup | true | Remove all temp files/folders (both local and remote) after installation. When set to true this will result in "changed" plays. |
-| oraclejdk_install_prereq   | false | If set to true it will install packages (see requirements) that are required for this role to succeed.|
-| oraclejdk_force_install | false | By default the role will check if the JDK installation folder already exists and skips the extraction of the archive if it does exist. Setting this value to true will force the role to extract the archive even when the folder already exists. Please be aware that this may overwrite any previously installed JCE policy files (JDK8 only). |
+| oraclejdk_force_install | false | By default the role will check if the JDK installation folder already exists and skips the extraction of the archive if it does exist. Setting this value to true will force the role to extract the archive even when the folder already exists. Please be aware that this may overwrite any previously made changes (e. g. JCE policy files). |
 | oraclejdk_dl_dir | /tmp/oraclejdk | The folder (both local and remote) to which the archives get downloaded/copied/extracted. |
-| oraclejdk_base_root | /opt/oraclejdk | The folder in which the JDK archives get extracted. All JDK folders will be in here. |
+| oraclejdk_home | | The Java home directory to which the JDK should get extracted to and to which JAVA_HOME will point to if set. |
 | oraclejdk_profile_file | /etc/profile.d/java.sh | The file in which the role will set the JAVA_HOME and PATH export. |
 | oraclejdk_cookie | Cookie:oraclelicense=accept-securebackup-cookie | The cookie required for automated downloads from oracle.com. License check is done with a different variable. |
-| oraclejdk_name | | The name of the folder within the JDK base root. If none is provided it will take the name of the folder inside the tarball archive. JAVA_HOME will be `{{ oraclejdk_base_root }}/{{ oraclejdk_name }}`. |
-| oraclejdk_url | | The URL of th JDK archive. Could be either oracle.com or a corporate repository (e. g. Artifactory). |
+| oraclejdk_url | | The URL of the JDK archive either at oracle.com or a local corporate repository (recommended). |
 | oraclejdk_checksum | | The SHA256 checksum of the JDK archive. This is used to verify that the downloaded file is valid. To disable this check just provide an empty checksum value (`oraclejdk_checksum: ''`). |
 | oraclejdk_sethome | true | When set to true it will update the global variable JAVA_HOME to point to the installation directory of the JDK and add the binaries to the PATH variable. Also have a look at the `oraclejdk_profile_file` variable. |
 | oraclejdk_alternative_upd | true | When set to true it will set the alternative for java (`update-alternatives --config java`) to the current JDK. In addition it will also update the alternatives for `jar, javac, jcmd, jconsole, jmap, jps, jstack, jstat, jstatd`.|
-| oraclejdk_alternative_prio | 8144 | The priority used for the `update-alternatives` command. The JDK with the highest priority wins. |
+| oraclejdk_alternative_prio | 1 | The priority used for the `update-alternatives` command. The JDK with the highest priority wins. |
 | oraclejdk_jce_install | false | When set to true it will install and add the latest Java Cryptography Extension (JCE) to the JDK. Please note that with JDK9 the unlimited key strength is enabled by default and no additional action are required. For more information please refer to the [security-dev mailinglist](http://mail.openjdk.java.net/pipermail/security-dev/2016-October/014943.html). |
-| oraclejdk_jce_url | | **JDK8 only**. The URL of the JCE archive at oracle.com. |
+| oraclejdk_jce_name | UnlimitedJCEPolicyJDK8 | **JDK8 only**. The name of the folder inside the JCE archive. |
+| oraclejdk_jce_url | | **JDK8 only**. The URL of the JCE archive either at oracle.com or a local corporate repository (recommended). |
 | oraclejdk_jce_checksum | | **JDK8 only**. The SHA256 checksum of the JCE archive. To disable this check just provide an empty checksum value (`oraclejdk_jce_checksum: ''`). |
 
 ## Example Playbooks
@@ -80,36 +79,85 @@ Following are some examples how to use this role in an Ansible playbook.
 
 **JDK8 w/ minimal configuration**
 ```yaml
-- hosts: servers
+- hosts: jdk8
   roles:
   - role: frieder.oraclejdk
     oraclejdk_license_accept: true
-    oraclejdk_url: 'http://path/to/tar.gz'
-    oraclejdk_checksum: ''
+    oraclejdk_home: /opt/java/jdk8_151
+    oraclejdk_url: 'http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz'
+    oraclejdk_checksum: 'sha256:c78200ce409367b296ec39be4427f020e2c585470c4eed01021feada576f027f'
 ```
 
-**JDK8 Prerequisites & No Cleanup**
+**JDK8 w/ JCE**
 ```yaml
-- hosts: servers
+- hosts: jdk8
+  pre_tasks:
+  - name: install required packages
+    package:
+      name: '{{ item }}'
+      state: present
+    with_items:
+    - tar
+    - unzip
   roles:
   - role: frieder.oraclejdk
     oraclejdk_license_accept: true
-    oraclejdk_install_prereq: true
-    oraclejdk_cleanup:        false
-    oraclejdk_url: 'http://path/to/tar.gz'
-    oraclejdk_checksum: ''
+    oraclejdk_home: /opt/java/java-8-151
+    oraclejdk_url: 'http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz'
+    oraclejdk_checksum: 'sha256:c78200ce409367b296ec39be4427f020e2c585470c4eed01021feada576f027f'
+    oraclejdk_jce_install: true
+    oraclejdk_jce_url: 'http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip'
+    oraclejdk_jce_checksum: 'sha256:f3020a3922efd6626c2fff45695d527f34a8020e938a49292561f18ad1320b59'
 ```
 
-**JDK9 with custom installation path**
+**JDK8 full config**
 ```yaml
-- hosts: servers
+- hosts: jdk8
+  pre_tasks:
+  - name: install required packages
+    package:
+      name: '{{ item }}'
+      state: present
+    with_items:
+    - tar
+    - unzip
   roles:
-    - role: frieder.oraclejdk
-      oraclejdk_license_accept:   true
-      oraclejdk_base_root:        /tmp/java
-      oraclejdk_name:             customjava9
-      oraclejdk_url:              'http://download.oracle.com/otn-pub/java/jdk/9+181/jdk-9_linux-x64_bin.tar.gz'
-      oraclejdk_checksum:         'sha256:1c6d783a54fcc0673ed1f8c5e8650b1d8977ca3e856a03fba0090198e0f16f6d'
-      oraclejdk_alternative_prio: 9181
+  - role: frieder.oraclejdk
+    oraclejdk_license_accept: true
+    oraclejdk_cleanup: true
+    oraclejdk_force_install: true
+    oraclejdk_dl_dir: /tmp/java_download
+    oraclejdk_home: /opt/java/java-8-151
+    oraclejdk_sethome: true
+    oraclejdk_alternative_upd: true
+    oraclejdk_alternative_prio: 123
+    oraclejdk_profile_file: /etc/profile.d/java.sh
+    oraclejdk_url: 'http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz'
+    oraclejdk_checksum: 'sha256:c78200ce409367b296ec39be4427f020e2c585470c4eed01021feada576f027f'
+    oraclejdk_jce_install: true
+    oraclejdk_jce_url: 'http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip'
+    oraclejdk_jce_checksum: 'sha256:f3020a3922efd6626c2fff45695d527f34a8020e938a49292561f18ad1320b59'
+```
+
+**JDK9**
+```yaml
+- - hosts: jdk9
+  roles:
+  - role: frieder.oraclejdk
+    oraclejdk_license_accept: true
+    oraclejdk_home: /opt/java/jdk9.0.1
+    oraclejdk_url: 'http://download.oracle.com/otn-pub/java/jdk/9.0.1+11/jdk-9.0.1_linux-x64_bin.tar.gz'
+    oraclejdk_checksum: 'sha256:2cdaf0ff92d0829b510edd883a4ac8322c02f2fc1beae95d048b6716076bc014'
+```
+
+**JDK9 w/o checksum check**
+```yaml
+- hosts: - hosts: jdk9
+  roles:
+  - role: frieder.oraclejdk
+    oraclejdk_license_accept: true
+    oraclejdk_home: /opt/java/jdk9.0.1
+    oraclejdk_url: 'http://download.oracle.com/otn-pub/java/jdk/9.0.1+11/jdk-9.0.1_linux-x64_bin.tar.gz'
+    oraclejdk_checksum: ''
 ```
 
