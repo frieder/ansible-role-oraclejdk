@@ -5,6 +5,7 @@
 oraclejdk_license_accept:   false   # must be set to true otherwise the play will fail
 oraclejdk_cleanup:          true    # will remove temp files <--> plabooks will return changed = true if true
 oraclejdk_force_install:    false   # will install the JDK even when its already installed (dir exist check)
+oraclejdk_state:            present
 
 oraclejdk_dl_dir:           /tmp/oraclejdk            # temp directory in which the archives are stored
 oraclejdk_base_root:        /opt/oraclejdk            # the base directory in which the JDK dirs will be extracted
@@ -15,6 +16,18 @@ oraclejdk_cookie:           'Cookie:oraclelicense=accept-securebackup-cookie'
 oraclejdk_sethome:          true            # true will update $JAVA_HOME
 oraclejdk_alternative_upd:  true            # true will run update-alternatives
 oraclejdk_alternative_prio: 1               # the priority for update-alternatives
+oraclejdk_alternative_items:
+  - jar
+  - java
+  - javac
+  - jcmd
+  - jconsole
+  - jmap
+  - jps
+  - jstack
+  - jstat
+  - jstatd
+
 
 # Starting with JDK9 this is no longer required, see http://mail.openjdk.java.net/pipermail/security-dev/2016-October/014943.html
 # Only use this for JDK 8 and lower. 

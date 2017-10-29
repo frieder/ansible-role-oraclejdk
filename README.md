@@ -56,7 +56,8 @@ All role variables are defined in `defaults/main.yml`. One can overwrite these v
 
 | Variable | Default | Description |
 |--:|:-:|:--|
-| oraclejdk_license_accept | false | Must be set to true or the play will fail. |
+| oraclejdk_license_accept | false | When installing a JDK this must be set to true otherwise the play will fail. Not required when removing a JDK. |
+| oraclejdk_state | present | Defines whether to add or remove a JDK from the target host. Possible values are `[present,absent]`. |
 | oraclejdk_cleanup | true | Remove all temp files/folders (both local and remote) after installation. When set to true this will result in "changed" plays. |
 | oraclejdk_force_install | false | By default the role will check if the JDK installation folder already exists and skips the extraction of the archive if it does exist. Setting this value to true will force the role to extract the archive even when the folder already exists. Please be aware that this may overwrite any previously made changes (e. g. JCE policy files). |
 | oraclejdk_dl_dir | /tmp/oraclejdk | The folder (both local and remote) to which the archives get downloaded/copied/extracted. |
@@ -79,6 +80,8 @@ Following are some examples how to use this role in an Ansible playbook.
 
 **JDK8 w/ minimal configuration**
 ```yaml
+---
+
 - hosts: jdk8
   roles:
   - role: frieder.oraclejdk
@@ -90,6 +93,8 @@ Following are some examples how to use this role in an Ansible playbook.
 
 **JDK8 w/ JCE**
 ```yaml
+---
+
 - hosts: jdk8
   pre_tasks:
   - name: install required packages
@@ -112,6 +117,8 @@ Following are some examples how to use this role in an Ansible playbook.
 
 **JDK8 full config**
 ```yaml
+---
+
 - hosts: jdk8
   pre_tasks:
   - name: install required packages
@@ -141,6 +148,8 @@ Following are some examples how to use this role in an Ansible playbook.
 
 **JDK9**
 ```yaml
+---
+
 - - hosts: jdk9
   roles:
   - role: frieder.oraclejdk
@@ -152,6 +161,8 @@ Following are some examples how to use this role in an Ansible playbook.
 
 **JDK9 w/o checksum check**
 ```yaml
+---
+
 - hosts: - hosts: jdk9
   roles:
   - role: frieder.oraclejdk
@@ -160,3 +171,23 @@ Following are some examples how to use this role in an Ansible playbook.
     oraclejdk_url: 'http://download.oracle.com/otn-pub/java/jdk/9.0.1+11/jdk-9.0.1_linux-x64_bin.tar.gz'
     oraclejdk_checksum: ''
 ```
+
+**JDK9 add new JDK, remove old JDK**
+```yaml
+---
+
+- hosts: jdk9
+  roles:
+  - role: frieder.oraclejdk
+    oraclejdk_license_accept: true
+    oraclejdk_home: /opt/java/jdk9.0.1
+    oraclejdk_url: 'http://download.oracle.com/otn-pub/java/jdk/9.0.1+11/jdk-9.0.1_linux-x64_bin.tar.gz'
+    oraclejdk_checksum: ''
+
+- hosts: jdk9
+  roles:
+  - role: frieder.oraclejdk
+    oraclejdk_state: absent
+    oraclejdk_home: /opt/java/jdk9.0.1
+```
+
