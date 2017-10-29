@@ -67,8 +67,9 @@ All role variables are defined in `defaults/main.yml`. One can overwrite these v
 | oraclejdk_url | | The URL of the JDK archive either at oracle.com or a local corporate repository (recommended). |
 | oraclejdk_checksum | | The SHA256 checksum of the JDK archive. This is used to verify that the downloaded file is valid. To disable this check just provide an empty checksum value (`oraclejdk_checksum: ''`). |
 | oraclejdk_sethome | true | When set to true it will update the global variable JAVA_HOME to point to the installation directory of the JDK and add the binaries to the PATH variable. Also have a look at the `oraclejdk_profile_file` variable. |
-| oraclejdk_alternative_upd | true | When set to true it will set the alternative for java (`update-alternatives --config java`) to the current JDK. In addition it will also update the alternatives for `jar, javac, jcmd, jconsole, jmap, jps, jstack, jstat, jstatd`.|
+| oraclejdk_alternative_upd | true | When set to true it will set the alternative for java (`update-alternatives --config java`) to the current JDK. |
 | oraclejdk_alternative_prio | 1 | The priority used for the `update-alternatives` command. The JDK with the highest priority wins. |
+| oraclejdk_alternative_items | <ul><li>jar</li><li>java</li><li>javac</li><li>jcmd</li><li>jconsole</li><li>jmap</li><li>jps</li><li>jstack</li><li>jstat</li><li>jstatd</li></ul> | This property allows to define what kind of alternatives should be configured for the JDK. |
 | oraclejdk_jce_install | false | When set to true it will install and add the latest Java Cryptography Extension (JCE) to the JDK. Please note that with JDK9 the unlimited key strength is enabled by default and no additional action are required. For more information please refer to the [security-dev mailinglist](http://mail.openjdk.java.net/pipermail/security-dev/2016-October/014943.html). |
 | oraclejdk_jce_name | UnlimitedJCEPolicyJDK8 | **JDK8 only**. The name of the folder inside the JCE archive. |
 | oraclejdk_jce_url | | **JDK8 only**. The URL of the JCE archive either at oracle.com or a local corporate repository (recommended). |
@@ -80,8 +81,6 @@ Following are some examples how to use this role in an Ansible playbook.
 
 **JDK8 w/ minimal configuration**
 ```yaml
----
-
 - hosts: jdk8
   roles:
   - role: frieder.oraclejdk
@@ -93,8 +92,6 @@ Following are some examples how to use this role in an Ansible playbook.
 
 **JDK8 w/ JCE**
 ```yaml
----
-
 - hosts: jdk8
   pre_tasks:
   - name: install required packages
@@ -117,8 +114,6 @@ Following are some examples how to use this role in an Ansible playbook.
 
 **JDK8 full config**
 ```yaml
----
-
 - hosts: jdk8
   pre_tasks:
   - name: install required packages
@@ -138,6 +133,17 @@ Following are some examples how to use this role in an Ansible playbook.
     oraclejdk_sethome: true
     oraclejdk_alternative_upd: true
     oraclejdk_alternative_prio: 123
+    oraclejdk_alternative_items:
+    - jar
+    - java
+    - javac
+    - jcmd
+    - jconsole
+    - jmap
+    - jps
+    - jstack
+    - jstat
+    - jstatd
     oraclejdk_profile_file: /etc/profile.d/java.sh
     oraclejdk_url: 'http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz'
     oraclejdk_checksum: 'sha256:c78200ce409367b296ec39be4427f020e2c585470c4eed01021feada576f027f'
@@ -148,9 +154,7 @@ Following are some examples how to use this role in an Ansible playbook.
 
 **JDK9**
 ```yaml
----
-
-- - hosts: jdk9
+- hosts: jdk9
   roles:
   - role: frieder.oraclejdk
     oraclejdk_license_accept: true
@@ -161,8 +165,6 @@ Following are some examples how to use this role in an Ansible playbook.
 
 **JDK9 w/o checksum check**
 ```yaml
----
-
 - hosts: - hosts: jdk9
   roles:
   - role: frieder.oraclejdk
@@ -174,8 +176,6 @@ Following are some examples how to use this role in an Ansible playbook.
 
 **JDK9 add new JDK, remove old JDK**
 ```yaml
----
-
 - hosts: jdk9
   roles:
   - role: frieder.oraclejdk
@@ -190,4 +190,3 @@ Following are some examples how to use this role in an Ansible playbook.
     oraclejdk_state: absent
     oraclejdk_home: /opt/java/jdk9.0.1
 ```
-
