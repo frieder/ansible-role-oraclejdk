@@ -69,17 +69,7 @@
         link:     '/usr/bin/{{ item }}'
         path:     '{{ oraclejdk_home }}/bin/{{ item }}'
         priority: '{{ oraclejdk_alternative_prio }}'
-      with_items:
-        - jar
-        - java
-        - javac
-        - jcmd
-        - jconsole
-        - jmap
-        - jps
-        - jstack
-        - jstat
-        - jstatd
+      with_items: '{{ oraclejdk_alternative_items }}'
 
   tags:    
     - oraclejdk
