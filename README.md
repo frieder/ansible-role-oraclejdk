@@ -159,3 +159,4 @@ Following are some examples how to use this role in an Ansible playbook.
     oraclejdk_home: /opt/java/jdk9.0.1
     oraclejdk_url: 'http://download.oracle.com/otn-pub/java/jdk/9.0.1+11/jdk-9.0.1_linux-x64_bin.tar.gz'
     oraclejdk_checksum: ''
+```

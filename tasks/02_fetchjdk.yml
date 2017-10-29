@@ -1,0 +1,39 @@
+---
+
+- name: Fetch Oracle JDK artefacts
+  delegate_to: 127.0.0.1
+  run_once: true
+  block:
+
+    - name: 'Create temp directory at {{ oraclejdk_dl_dir }} (127.0.0.1)'
+      file:
+        path:   '{{ oraclejdk_dl_dir }}'
+        state:  directory
+
+    - name: 'Download Oracle JDK to temp directory (127.0.0.1)'
+      get_url:
+        url:      '{{ oraclejdk_url }}'
+        headers:  '{{ oraclejdk_cookie }}'
+        checksum: '{{ oraclejdk_checksum }}'
+        dest:     '{{ oraclejdk_dl_dir }}/'
+      register: dl_result
+
+    - name: Set fact 'oraclejdk_dl_artefact_path' to absolute path of downloaded JDK archive
+      set_fact:
+        oraclejdk_dl_artefact_path: '{{ dl_result.dest }}'
+
+    - name: Get name of folder within JDK tar archive
+      shell: "tar xvf {{ oraclejdk_dl_artefact_path }} | awk -F/ '{print $1}' | uniq"
+      args:
+        warn: false
+      register: dl_inspect
+      changed_when: false
+
+    - name: Set fact 'oraclejdk_dl_artefact_name' to name of folder in JDK archive
+      set_fact:
+        oraclejdk_dl_artefact_name: '{{ dl_inspect.stdout }}'
+
+  tags:
+    - oraclejdk
+    - oraclejdk_download
+
