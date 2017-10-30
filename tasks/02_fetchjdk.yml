@@ -23,7 +23,7 @@
         oraclejdk_dl_artefact_path: '{{ dl_result.dest }}'
 
     - name: Get name of folder within JDK tar archive
-      shell: "tar xvf {{ oraclejdk_dl_artefact_path }} | awk -F/ '{print $1}' | uniq"
+      shell: "tar tf {{ oraclejdk_dl_artefact_path }} | awk -F/ '{print $1}' | uniq"
       args:
         warn: false
       register: dl_inspect
