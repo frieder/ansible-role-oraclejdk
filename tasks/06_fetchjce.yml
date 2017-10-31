@@ -5,9 +5,15 @@
     path:   '{{ oraclejdk_home }}/conf/security/java.security'
   register: jdk9_check
 
+- name: Check if JCE is already installed
+  when: oraclejdk_jce_install
+  shell: '{{ oraclejdk_home }}/bin/jrunscript -e "print (javax.crypto.Cipher.getMaxAllowedKeyLength(\"SHA256\") > 128);"'
+  changed_when: false
+  ignore_errors: true
+  register: jce_installed
 
 - name: Fetch Oracle Java Cryptography Extension (JCE) artefacts (JDK8 only)
-  when: oraclejdk_jce_install and jdk9_check.stat.exists == false
+  when: oraclejdk_jce_install and jce_installed.stdout == 'false' and jdk9_check.stat.exists == false
   delegate_to: 127.0.0.1
   run_once: true
   block:
@@ -23,6 +29,12 @@
         headers:  '{{ oraclejdk_cookie }}'
         checksum: '{{ oraclejdk_jce_checksum }}'
         dest:     '{{ oraclejdk_dl_dir }}/{{ oraclejdk_jce_name }}.zip'
+
+    - name: Unzip Oracle JCE archive (JDK8 only)
+      unarchive:
+        src:      '{{ oraclejdk_dl_dir }}/{{ oraclejdk_jce_name }}.zip'
+        dest:     '{{ oraclejdk_dl_dir }}/'
+        remote_src: true
 
   tags:
     - oraclejdk

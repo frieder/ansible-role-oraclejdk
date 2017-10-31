@@ -3,56 +3,17 @@
 - name: JCE block
   block:
 
-  - name: Check if JCE is already installed
-    when: oraclejdk_jce_install
-    shell: '{{ oraclejdk_home }}/bin/jrunscript -e "print (javax.crypto.Cipher.getMaxAllowedKeyLength(\"SHA256\") > 128);"'
-    changed_when: false
-    ignore_errors: true
-    register: jce_installed
-
   # JDK8
   - name: Install Oracle Java Cryptography Extension (JDK8 only)
     when: oraclejdk_jce_install and jce_installed.stdout == 'false' and jdk9_check.stat.exists == false
-    block:
+    copy:
+      src:    '{{ oraclejdk_dl_dir }}/{{ oraclejdk_jce_name }}/{{ item }}'
+      dest:   '{{ oraclejdk_home }}/jre/lib/security/{{ item }}'
+    with_items:
+      - US_export_policy.jar
+      - local_policy.jar
 
-      - name: 'Create temp directory at {{ oraclejdk_dl_dir }} (JDK8 only)'
-        file:
-          path:   '{{ oraclejdk_dl_dir }}'
-          state:  directory
-
-      - name: 'Copy Oracle JCE archive to temp directory at {{ oraclejdk_dl_dir }} (JDK8 only)'
-        copy:
-          src:    '{{ oraclejdk_dl_dir }}/{{ oraclejdk_jce_name }}.zip'
-          dest:   '{{ oraclejdk_dl_dir }}/{{ oraclejdk_jce_name }}.zip'
-
-      - name: Unzip Oracle JCE archive (JDK8 only)
-        unarchive:
-          src:        '{{ oraclejdk_dl_dir }}/{{ oraclejdk_jce_name }}.zip'
-          dest:       '{{ oraclejdk_dl_dir }}/'
-          remote_src: true
-
-      - name: Copy JCE policy files to JDK (JDK8 only)
-        copy:
-          src:        '{{ oraclejdk_dl_dir }}/{{ oraclejdk_jce_name }}/{{ item }}'
-          dest:       '{{ oraclejdk_home }}/jre/lib/security/{{ item }}'
-          remote_src: true
-        with_items:
-          - US_export_policy.jar
-          - local_policy.jar
-
-      - name: Check if JCE has successfully been installed (JDK8 only)
-        shell: '{{ oraclejdk_home }}/bin/jrunscript -e "print (javax.crypto.Cipher.getMaxAllowedKeyLength(\"SHA256\") > 128);"'
-        changed_when: false
-        ignore_errors: true
-        register: jce_check
-
-      - name: Fail if JCE installation was not successful
-        when: jce_check.stdout == 'false'
-        fail:
-          msg:  JCE has not successfully been installed.
-
-
-  # JDK9 (already enabled by default, only required to re-enable it)
+  # JDK9
   - name: Enable unlimited Java Cryptography Extension key strength (JDK9 only)
     when: oraclejdk_jce_install and jce_installed.stdout == 'false' and jdk9_check.stat.exists == true
     lineinfile:
@@ -72,7 +33,6 @@
     when: jce_check.stdout == 'false'
     fail:
       msg:  JCE has not successfully been installed.
-
 
   tags:
     - oraclejdk
