@@ -13,32 +13,20 @@
   block:
 
     - name: Copy and extract JDK archive
-      when: java_home_check.stat.exists == false or oraclejdk_force_install
+      when: java_home_check.stat.exists == false
       block:
-
-        - name: 'Create temp directory at {{ oraclejdk_dl_dir }}'
-          file:
-            path:   '{{ oraclejdk_dl_dir }}'
-            state:  directory
-
-        - name: 'Copy {{ oraclejdk_dl_artefact_path }} from source to target host'
-          copy:
-            src:    '{{ oraclejdk_dl_artefact_path }}'
-            dest:   '{{ oraclejdk_dl_artefact_path }}'
 
         - name: 'Create JDK base root directory at {{ oraclejdk_home }}'
           file:
             path:   '{{ oraclejdk_home }}'
             state:  directory
 
-        - name: 'Extract JDK archive to {{ oraclejdk_home }}/{{ oraclejdk_dl_artefact_name }}'
+        - name: 'Extract JDK archive to {{ oraclejdk_home }}'
           unarchive:
             src:        '{{ oraclejdk_dl_artefact_path }}'
             dest:       '{{ oraclejdk_home }}'
-            remote_src: true
+            extra_opts: ['--strip-components=1']
 
-        - name: Move JDK content & cleanup of obsolete folder
-          shell:  'mv {{ oraclejdk_home }}/{{ oraclejdk_dl_artefact_name }}/* {{ oraclejdk_home }} && rmdir {{ oraclejdk_home }}/{{ oraclejdk_dl_artefact_name }}'
 
     - name: Set JAVA_HOME
       when: oraclejdk_sethome

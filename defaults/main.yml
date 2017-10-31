@@ -4,7 +4,6 @@
 #
 oraclejdk_license_accept:   false   # must be set to true otherwise the play will fail
 oraclejdk_cleanup:          true    # will remove temp files <--> plabooks will return changed = true if true
-oraclejdk_force_install:    false   # will install the JDK even when its already installed (dir exist check)
 oraclejdk_state:            present
 
 oraclejdk_dl_dir:           /tmp/oraclejdk            # temp directory in which the archives are stored

@@ -59,7 +59,6 @@ All role variables are defined in `defaults/main.yml`. One can overwrite these v
 | oraclejdk_license_accept | false | When installing a JDK this must be set to true otherwise the play will fail. Not required when removing a JDK. |
 | oraclejdk_state | present | Defines whether to add or remove a JDK from the target host. Possible values are `[present,absent]`. |
 | oraclejdk_cleanup | true | Remove all temp files/folders (both local and remote) after installation. When set to true this will result in "changed" plays. |
-| oraclejdk_force_install | false | By default the role will check if the JDK installation folder already exists and skips the extraction of the archive if it does exist. Setting this value to true will force the role to extract the archive even when the folder already exists. Please be aware that this may overwrite any previously made changes (e. g. JCE policy files). |
 | oraclejdk_dl_dir | /tmp/oraclejdk | The folder (both local and remote) to which the archives get downloaded/copied/extracted. |
 | oraclejdk_home | | The Java home directory to which the JDK should get extracted to and to which JAVA_HOME will point to if set. |
 | oraclejdk_profile_file | /etc/profile.d/java.sh | The file in which the role will set the JAVA_HOME and PATH export. |
@@ -79,6 +78,37 @@ All role variables are defined in `defaults/main.yml`. One can overwrite these v
 
 Following are some examples how to use this role in an Ansible playbook.
 
+**JDK8 & JDK9 together, set home for JDK8, update alternatives for both JDKs with different priorities**
+```yaml
+- hosts: jdk
+  pre_tasks:
+  - name: Install required packages (127.0.0.1)
+    delegate_to: 127.0.0.1
+    package:
+      name: '{{ item }}'
+      state: present
+    with_items:
+    - tar
+    - unzip
+  roles:
+  - role: frieder.oraclejdk
+    oraclejdk_license_accept: true
+    oraclejdk_home: /opt/java/jdk9.0.1
+    oraclejdk_sethome: false
+    oraclejdk_alternative_prio: 100
+    oraclejdk_url: 'http://download.oracle.com/otn-pub/java/jdk/9.0.1+11/jdk-9.0.1_linux-x64_bin.tar.gz'
+    oraclejdk_checksum: 'sha256:2cdaf0ff92d0829b510edd883a4ac8322c02f2fc1beae95d048b6716076bc014'
+  - role: frieder.oraclejdk
+    oraclejdk_license_accept: true
+    oraclejdk_home: /opt/java/jdk8u151
+    oraclejdk_alternative_prio: 200
+    oraclejdk_url: 'http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz'
+    oraclejdk_checksum: 'sha256:c78200ce409367b296ec39be4427f020e2c585470c4eed01021feada576f027f'
+    oraclejdk_jce_install: true
+    oraclejdk_jce_url: 'http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip'
+    oraclejdk_jce_checksum: 'sha256:f3020a3922efd6626c2fff45695d527f34a8020e938a49292561f18ad1320b59'
+```
+
 **JDK8 w/ minimal configuration**
 ```yaml
 - hosts: jdk8
@@ -93,14 +123,6 @@ Following are some examples how to use this role in an Ansible playbook.
 **JDK8 w/ JCE**
 ```yaml
 - hosts: jdk8
-  pre_tasks:
-  - name: install required packages
-    package:
-      name: '{{ item }}'
-      state: present
-    with_items:
-    - tar
-    - unzip
   roles:
   - role: frieder.oraclejdk
     oraclejdk_license_accept: true
@@ -115,19 +137,10 @@ Following are some examples how to use this role in an Ansible playbook.
 **JDK8 full config**
 ```yaml
 - hosts: jdk8
-  pre_tasks:
-  - name: install required packages
-    package:
-      name: '{{ item }}'
-      state: present
-    with_items:
-    - tar
-    - unzip
   roles:
   - role: frieder.oraclejdk
     oraclejdk_license_accept: true
     oraclejdk_cleanup: true
-    oraclejdk_force_install: true
     oraclejdk_dl_dir: /tmp/java_download
     oraclejdk_home: /opt/java/java-8-151
     oraclejdk_sethome: true
@@ -183,10 +196,9 @@ Following are some examples how to use this role in an Ansible playbook.
     oraclejdk_home: /opt/java/jdk9.0.1
     oraclejdk_url: 'http://download.oracle.com/otn-pub/java/jdk/9.0.1+11/jdk-9.0.1_linux-x64_bin.tar.gz'
     oraclejdk_checksum: ''
-
-- hosts: jdk9
-  roles:
   - role: frieder.oraclejdk
     oraclejdk_state: absent
     oraclejdk_home: /opt/java/jdk9.0.1
 ```
+
+

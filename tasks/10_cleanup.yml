@@ -11,11 +11,6 @@
         path:   '{{ oraclejdk_dl_dir }}'
         state:  absent
 
-    - name: 'Remove temp folder at {{ oraclejdk_dl_dir }}'
-      file:
-        path:   '{{ oraclejdk_dl_dir }}'
-        state:  absent
-
   tags:
     - oraclejdk
     - oraclejdk_cleanup
