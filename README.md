@@ -84,6 +84,7 @@ Following are some examples how to use this role in an Ansible playbook.
   pre_tasks:
   - name: Install required packages (127.0.0.1)
     delegate_to: 127.0.0.1
+    run_once: true
     package:
       name: '{{ item }}'
       state: present
