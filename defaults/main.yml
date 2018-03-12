@@ -10,6 +10,8 @@ oraclejdk_dl_dir:           /tmp/oraclejdk            # temp directory in which 
 oraclejdk_base_root:        /opt/oraclejdk            # the base directory in which the JDK dirs will be extracted
 oraclejdk_profile_file:     /etc/profile.d/java.sh    # the location of the file to set JAVA_HOME
 
+oraclejdk_url_user:         ''
+oraclejdk_url_pass:         ''
 oraclejdk_cookie:           'Cookie:oraclelicense=accept-securebackup-cookie'
 
 oraclejdk_sethome:          true            # true will update $JAVA_HOME

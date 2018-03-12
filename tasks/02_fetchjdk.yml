@@ -13,6 +13,8 @@
     - name: 'Download Oracle JDK to temp directory (127.0.0.1)'
       get_url:
         url:      '{{ oraclejdk_url }}'
+        url_username: '{{ oraclejdk_url_user }}'
+        url_password: '{{ oraclejdk_url_pass }}'
         headers:  '{{ oraclejdk_cookie }}'
         checksum: '{{ oraclejdk_checksum }}'
         dest:     '{{ oraclejdk_dl_dir }}/'
