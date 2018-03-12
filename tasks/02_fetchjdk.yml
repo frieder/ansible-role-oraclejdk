@@ -14,7 +14,7 @@
       get_url:
         url:      '{{ oraclejdk_url }}'
         url_username: '{{ oraclejdk_url_user }}'
-        url_password: '{{ oraclejdk_url_pass }}'
+        url_password: "{{ oraclejdk_url_pass | replace('\n','') }}"
         headers:  '{{ oraclejdk_cookie }}'
         checksum: '{{ oraclejdk_checksum }}'
         dest:     '{{ oraclejdk_dl_dir }}/'
