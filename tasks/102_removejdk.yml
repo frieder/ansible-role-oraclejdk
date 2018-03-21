@@ -1,0 +1,32 @@
+---
+
+- name: 'Remove Java alternatives for {{ jdkitem }}'
+  command: 'update-alternatives --remove "{{ item }}" "{{ jdkitem }}/bin/{{ item }}"'
+  with_items: '{{ oraclejdk_alternative_items }}'
+  changed_when: false
+  tags:
+    - oraclejdk
+
+- name: 'Check if {{ oraclejdk_profile_file }} exists'
+  stat:
+    path: '{{ oraclejdk_profile_file }}'
+  register: profile_file_check
+  tags:
+    - oraclejdk
+
+- name: 'Remove JAVA_HOME if pointing to {{ jdkitem }}'
+  when: profile_file_check.stat.exists == true
+  lineinfile:
+    path:     '{{ oraclejdk_profile_file }}'
+    regexp:   '^export JAVA_HOME={{ jdkitem }}'
+    line:     'export JAVA_HOME='
+    backrefs: true
+  tags:
+    - oraclejdk
+
+- name: 'Remove JDK home directory at {{ jdkitem }}'
+  file:
+    path: '{{ jdkitem }}'
+    state: absent
+  tags:
+    - oraclejdk
