@@ -60,10 +60,12 @@ All role variables are defined in `defaults/main.yml`. One can overwrite these v
 | oraclejdk_state | present | Defines whether to add or remove a JDK from the target host. Possible values are `[present,absent]`. |
 | oraclejdk_cleanup | true | Remove all temp files/folders (both local and remote) after installation. When set to true this will result in "changed" plays. |
 | oraclejdk_dl_dir | /tmp/oraclejdk | The folder (both local and remote) to which the archives get downloaded/copied/extracted. |
-| oraclejdk_home | | The Java home directory to which the JDK should get extracted to and to which JAVA_HOME will point to if set. |
+| oraclejdk_home | | Depending on the value of oraclejdk_state this property takes different values. In case of *present* it will take a single string pointing to the desired location of JAVA_HOME. In case of *absent* it takes a list of former JDK locations that should now be removed. In this case provide a list with at least one entry. |
 | oraclejdk_profile_file | /etc/profile.d/java.sh | The file in which the role will set the JAVA_HOME and PATH export. |
 | oraclejdk_cookie | Cookie:oraclelicense=accept-securebackup-cookie | The cookie required for automated downloads from oracle.com. License check is done with a different variable. |
 | oraclejdk_url | | The URL of the JDK archive either at oracle.com or a local corporate repository (recommended). |
+| oraclejdk_url_user | | In case that simple HTTP auth is required one can provide a username here. |
+| oraclejdk_url_pass | | In case that simple HTTP auth is required one can provide a password here. |
 | oraclejdk_checksum | | The SHA256 checksum of the JDK archive. This is used to verify that the downloaded file is valid. To disable this check just provide an empty checksum value (`oraclejdk_checksum: ''`). |
 | oraclejdk_sethome | true | When set to true it will update the global variable JAVA_HOME to point to the installation directory of the JDK and add the binaries to the PATH variable. Also have a look at the `oraclejdk_profile_file` variable. |
 | oraclejdk_alternative_upd | true | When set to true it will set the alternative for java (`update-alternatives --config java`) to the current JDK. |
@@ -188,7 +190,7 @@ Following are some examples how to use this role in an Ansible playbook.
     oraclejdk_checksum: ''
 ```
 
-**JDK9 add new JDK, remove old JDK**
+**JDK9 add new JDK, remove old JDKs**
 ```yaml
 - hosts: jdk9
   roles:
@@ -199,7 +201,9 @@ Following are some examples how to use this role in an Ansible playbook.
     oraclejdk_checksum: ''
   - role: frieder.oraclejdk
     oraclejdk_state: absent
-    oraclejdk_home: /opt/java/jdk9.0.1
+    oraclejdk_home: 
+    - /opt/java/jdk9.0.1
+    - /opt//opt/java/java-8-151
 ```
 
 
